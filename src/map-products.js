@@ -1,3 +1,21 @@
+const DEFAULT_CUSTOM_DESCRIPTION = `PERSONALIZAÇÃO FEITA A LASER COM LETRAS, IMAGENS, SIMBOLOS ENTRE OUTRAS OPÇÕES.
+
+Corrente: Piastrine – Fecho Tradicional (Banhada a Ouro 18k)
+
+Pingente: Placa tamanho M
+
+Medidas: 45cm (Feminina) – 60cm e 70cm (Masculino)
+
+Material: A composição das nossas Joias são cobre e zinco, elas recebem Banho de OURO 18K e são envernizadas com antialérgico, possui também película protetora para que a Joia tenha alta durabilidade. Todas as nossas joias são cor idêntica ao ouro 18k.
+
+Atenção:
+
+Não cancelamos pedidos em processo de produção.
+Você também pode enviar sua personalização após finalizar o seu pedido!
+Para anexar a sua imagem ou símbolo desejado use o campo "Sua personalização tem imagem" e a sua frase ou como deseja sua personalização no campo "como deseja sua personalização".
+Prazo de produção de até 2 dias úteis.
+A personalização pode dar uma leve clareada após o tempo de uso.`;
+
 function firstDefined(...values) {
   return values.find((value) => value !== undefined && value !== null && value !== "");
 }
@@ -53,6 +71,14 @@ function buildProductUrl(handle) {
   return `${storeUrl}/produtos/${normalizedHandle}`;
 }
 
+function buildVariantUrl(productLink, variant) {
+  const variantId = firstDefined(variant?.id, variant?.variant_id);
+  if (!productLink || !variantId) return productLink;
+
+  const separator = productLink.includes("?") ? "&" : "?";
+  return `${productLink}${separator}variant=${variantId}`;
+}
+
 function getMainImage(product, variant) {
   const variantImage = firstDefined(
     variant?.image?.src,
@@ -94,16 +120,24 @@ function buildVariantTitle(productName, variant) {
   const uniqueParts = [...new Set(parts.filter(Boolean))];
 
   return uniqueParts.length
-    ? `${productName} - ${uniqueParts.join(" / ")}`
+    ? `${productName} (${uniqueParts.join(" / ")})`
     : productName;
 }
 
-function buildDescription(product) {
-  return stripHtml(
+function buildDescription(product, productName) {
+  const description = stripHtml(
     getLocalizedValue(
       firstDefined(product.description, product.description_html, product.seo_description)
     )
   );
+
+  const hasPersonalizableInTitle = /personalizável/i.test(productName || "");
+
+  if (!description && hasPersonalizableInTitle) {
+    return DEFAULT_CUSTOM_DESCRIPTION;
+  }
+
+  return description;
 }
 
 function getBrand(product) {
@@ -118,12 +152,12 @@ function getBrand(product) {
 
 function buildBaseItem(product) {
   const name = getLocalizedValue(product.name);
-  const description = buildDescription(product);
+  const description = buildDescription(product, name);
   const link = buildProductUrl(product.handle);
   const brand = getBrand(product);
 
   return {
-    baseId: String(product.id),
+    productId: String(product.id),
     title: name,
     description,
     link,
@@ -141,7 +175,7 @@ function mapSimpleProduct(product, baseItem) {
   if (!baseItem.title || !imageLink || !price) return null;
 
   return {
-    id: baseItem.baseId,
+    id: baseItem.productId,
     title: baseItem.title,
     description: baseItem.description,
     availability: normalizeAvailability(stock),
@@ -162,15 +196,17 @@ function mapVariantProduct(product, baseItem, variant) {
 
   if (!imageLink || !price) return null;
 
+  const variantId = firstDefined(variant.id, variant.variant_id);
+
   return {
-    id: String(firstDefined(variant.sku, variant.id, `${product.id}-variant`)),
+    id: String(variantId ?? `${product.id}-variant`),
     title: buildVariantTitle(baseItem.title, variant),
     description: baseItem.description,
     availability: normalizeAvailability(stock),
     condition: baseItem.condition,
     price,
     salePrice: variant.promotional_price ? normalizePrice(variant.promotional_price) : null,
-    link: baseItem.link,
+    link: buildVariantUrl(baseItem.link, variant),
     imageLink,
     brand: baseItem.brand,
     itemGroupId: baseItem.itemGroupId
