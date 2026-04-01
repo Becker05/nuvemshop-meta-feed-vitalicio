@@ -99,6 +99,45 @@ function getMainImage(product, variant) {
   );
 }
 
+function collectAllImages(product, variant) {
+  const images = [];
+
+  const pushIfString = (value) => {
+    if (typeof value === "string" && value.trim()) {
+      images.push(value.trim());
+    }
+  };
+
+  pushIfString(variant?.image?.src);
+  pushIfString(variant?.image?.url);
+  pushIfString(variant?.image?.https);
+
+  if (Array.isArray(variant?.images)) {
+    for (const img of variant.images) {
+      pushIfString(img?.src);
+      pushIfString(img?.url);
+      pushIfString(img?.https);
+    }
+  }
+
+  if (Array.isArray(product?.images)) {
+    for (const img of product.images) {
+      pushIfString(img?.src);
+      pushIfString(img?.url);
+      pushIfString(img?.https);
+    }
+  }
+
+  pushIfString(product?.featured_image?.src);
+  pushIfString(product?.featured_image?.url);
+
+  return [...new Set(images)];
+}
+
+function getAdditionalImageLinks(product, variant, mainImage) {
+  return collectAllImages(product, variant).filter((image) => image !== mainImage);
+}
+
 function buildVariantTitle(productName, variant) {
   const parts = [];
 
@@ -169,6 +208,7 @@ function buildBaseItem(product) {
 
 function mapSimpleProduct(product, baseItem) {
   const imageLink = getMainImage(product, null);
+  const additionalImageLinks = getAdditionalImageLinks(product, null, imageLink);
   const price = normalizePrice(firstDefined(product.promotional_price, product.price));
   const stock = firstDefined(product.stock, product.inventory, 0);
 
@@ -184,6 +224,7 @@ function mapSimpleProduct(product, baseItem) {
     salePrice: product.promotional_price ? normalizePrice(product.promotional_price) : null,
     link: baseItem.link,
     imageLink,
+    additionalImageLinks,
     brand: baseItem.brand,
     itemGroupId: null
   };
@@ -191,6 +232,7 @@ function mapSimpleProduct(product, baseItem) {
 
 function mapVariantProduct(product, baseItem, variant) {
   const imageLink = getMainImage(product, variant);
+  const additionalImageLinks = getAdditionalImageLinks(product, variant, imageLink);
   const price = normalizePrice(firstDefined(variant.price, product.price));
   const stock = firstDefined(variant.stock, variant.inventory, 0);
 
@@ -208,6 +250,7 @@ function mapVariantProduct(product, baseItem, variant) {
     salePrice: variant.promotional_price ? normalizePrice(variant.promotional_price) : null,
     link: buildVariantUrl(baseItem.link, variant),
     imageLink,
+    additionalImageLinks,
     brand: baseItem.brand,
     itemGroupId: baseItem.itemGroupId
   };
