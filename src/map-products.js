@@ -1,15 +1,6 @@
 const DEFAULT_CUSTOM_DESCRIPTION = `PERSONALIZAÇÃO FEITA A LASER COM LETRAS, IMAGENS, SIMBOLOS ENTRE OUTRAS OPÇÕES.
-
-Corrente: Piastrine – Fecho Tradicional (Banhada a Ouro 18k)
-
-Pingente: Placa tamanho M
-
-Medidas: 45cm (Feminina) – 60cm e 70cm (Masculino)
-
 Material: A composição das nossas Joias são cobre e zinco, elas recebem Banho de OURO 18K e são envernizadas com antialérgico, possui também película protetora para que a Joia tenha alta durabilidade. Todas as nossas joias são cor idêntica ao ouro 18k.
-
 Atenção:
-
 Não cancelamos pedidos em processo de produção.
 Você também pode enviar sua personalização após finalizar o seu pedido!
 Para anexar a sua imagem ou símbolo desejado use o campo "Sua personalização tem imagem" e a sua frase ou como deseja sua personalização no campo "como deseja sua personalização".
